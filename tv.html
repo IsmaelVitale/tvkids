@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -106,7 +105,7 @@
 
   window.onYouTubeIframeAPIReady = () => {
     player = new YT.Player('youtube-player', {
-      host: 'https://www.youtube-nocookie.com', // Contorno para restrição de rastreamento do iOS Safari
+      host: 'https://www.youtube-nocookie.com',
       playerVars: {
         'autoplay': 1,
         'controls': 0,
@@ -115,12 +114,19 @@
         'modestbranding': 1,
         'rel': 0,
         'playsinline': 1,
-        'origin': window.location.origin, // Necessário para WebKit CORS
-        'enablejsapi': 1
+        'origin': window.location.origin,
+        'enablejsapi': 1,
+        'cc_load_policy': 0, // Garante que a legenda não seja prioridade
+        'iv_load_policy': 3  // Remove anotações interativas do vídeo
       },
       events: {
-        'onReady': () => {
+        'onReady': (event) => {
           playerReady = true;
+
+          // Descarrega o módulo de legendas assim que o player inicializa
+          event.target.unloadModule('captions');
+          event.target.unloadModule('cc');
+
           btnPower.innerHTML = `
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path><line x1="12" y1="2" x2="12" y2="12"></line></svg>
                             Ligar a TV
@@ -131,6 +137,11 @@
         },
         'onStateChange': (event) => {
           if (event.data === YT.PlayerState.ENDED) syncWithClock();
+          // Garante a remoção das legendas caso o estado mude para PLAYING
+          if (event.data === YT.PlayerState.PLAYING) {
+            event.target.unloadModule('captions');
+            event.target.unloadModule('cc');
+          }
         },
         'onError': (event) => {
           console.error("YouTube API Error:", event.data);
