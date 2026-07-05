@@ -1,0 +1,386 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adicionar/Editar Programa</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #0f172a; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: white; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="min-h-screen p-6 md:p-12 m-0 flex flex-col h-screen relative overflow-x-hidden">
+
+<div id="success-toast" class="fixed top-6 right-6 z-50 bg-green-500 text-white px-6 py-4 rounded-xl shadow-2xl flex items-center gap-3 transition-all duration-300 transform translate-x-[150%]">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+    <span class="font-bold">Programa salvo com sucesso!</span>
+</div>
+
+<div id="conflict-toast" class="fixed top-6 right-6 z-50 bg-red-600 text-white px-6 py-4 rounded-xl shadow-2xl flex items-center gap-3 transition-all duration-300 transform translate-x-[150%]">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+    <span class="font-bold">Conflito de horário detectado!</span>
+</div>
+
+<div class="flex items-center gap-4 mb-8 shrink-0 max-w-6xl mx-auto w-full">
+    <a href="schedule.html" class="p-3 bg-slate-800 rounded-full hover:bg-slate-700 transition">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+    </a>
+    <h1 class="text-3xl font-bold" id="page-title">Novo Programa <span id="channel-name-title" class="text-slate-500 text-xl font-normal"></span></h1>
+</div>
+
+<div class="flex-1 flex flex-col lg:flex-row gap-8 min-h-0 max-w-6xl mx-auto w-full">
+
+    <div class="w-full lg:w-1/3 bg-slate-800 rounded-3xl p-6 border border-slate-700 flex flex-col">
+        <h2 class="text-xl font-bold mb-4 text-slate-300">Grade Atual</h2>
+        <div id="preview-schedule" class="flex-1 overflow-y-auto hide-scrollbar"></div>
+    </div>
+
+    <div class="w-full lg:w-2/3 bg-slate-800 rounded-3xl p-8 border border-slate-700 overflow-y-auto">
+        <form id="add-form" class="max-w-xl mx-auto space-y-6">
+
+            <div id="error-alert" class="hidden bg-red-500/10 border border-red-500/50 text-red-400 px-4 py-3 rounded-xl flex items-start gap-3">
+                <p id="error-message"></p>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-slate-400 mb-2">Link do YouTube *</label>
+                <input type="url" id="input-url" required placeholder="Cole o link do vídeo aqui..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:ring-blue-500 focus:outline-none" />
+                <p id="loading-yt" class="text-xs text-blue-400 mt-2 hidden animate-pulse">Extraindo metadados do YouTube...</p>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-slate-400 mb-2">Nome do Programa *</label>
+                <input type="text" id="input-title" required placeholder="Digite o nome..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:ring-blue-500 focus:outline-none" />
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-slate-400 mb-2">Dia da Semana *</label>
+                <select id="input-day" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:ring-blue-500 focus:outline-none">
+                    <option value="-1">Todos os Dias</option>
+                    <option value="0">Domingo</option>
+                    <option value="1">Segunda-feira</option>
+                    <option value="2">Terça-feira</option>
+                    <option value="3">Quarta-feira</option>
+                    <option value="4">Quinta-feira</option>
+                    <option value="5">Sexta-feira</option>
+                    <option value="6">Sábado</option>
+                </select>
+            </div>
+
+            <div class="grid grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm font-medium text-slate-400 mb-2">Hora de Início *</label>
+                    <input type="time" id="input-start-time" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white [color-scheme:dark] focus:outline-none" />
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-400 mb-2">Duração (min) *</label>
+                    <input type="number" id="input-duration" required placeholder="Ex: 30" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:ring-blue-500 focus:outline-none" />
+                </div>
+            </div>
+
+            <div id="time-summary" class="hidden bg-blue-900/20 border border-blue-500/30 p-4 rounded-xl text-blue-300 text-sm font-mono text-center">
+                Término previsto para: <span id="summary-end" class="font-bold text-white text-lg ml-2"></span>
+            </div>
+
+            <button type="submit" id="btn-submit" class="w-full bg-slate-600 text-slate-300 font-bold py-4 rounded-xl shadow-lg transition-all mt-8 cursor-not-allowed" disabled>
+                Salvar Programa
+            </button>
+        </form>
+    </div>
+</div>
+
+<div style="position: absolute; top: -9999px; left: -9999px;"><div id="hidden-yt-player"></div></div>
+
+<script>
+    const STORAGE_KEY = 'tvKidsChannels';
+    const EDIT_KEY = 'tvKidsCurrentEditChannel';
+    const PROG_EDIT_KEY = 'tvKidsEditProgramIndex';
+
+    let channels = [];
+    let channelIndex = -1;
+    let channel = null;
+    let editIndex = null;
+
+    const form = document.getElementById('add-form');
+    const inputUrl = document.getElementById('input-url');
+    const inputTitle = document.getElementById('input-title');
+    const inputDay = document.getElementById('input-day');
+    const inputStartTime = document.getElementById('input-start-time');
+    const inputDuration = document.getElementById('input-duration');
+    const timeSummary = document.getElementById('time-summary');
+    const summaryEnd = document.getElementById('summary-end');
+    const btnSubmit = document.getElementById('btn-submit');
+    const errorAlert = document.getElementById('error-alert');
+    const errorMessage = document.getElementById('error-message');
+    const loadingYt = document.getElementById('loading-yt');
+    const successToast = document.getElementById('success-toast');
+    const conflictToast = document.getElementById('conflict-toast');
+
+    let ytPlayer = null;
+    let isFetchingData = false;
+    let apiTimeout = null;
+
+    const tag = document.createElement('script');
+    tag.src = "https://www.youtube.com/iframe_api";
+    const firstScriptTag = document.getElementsByTagName('script')[0];
+    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+    const extractYouTubeId = (url) => {
+        const regExp = /^.*(youtu\.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=|shorts\/)([^#\&\?]{11}).*/;
+        const match = url.match(regExp);
+        return (match && match[2].length === 11) ? match[2] : null;
+    };
+
+    const timeToMinutes = t => { const [h, m] = t.split(':').map(Number); return (h * 60) + m; };
+    const minutesToTime = tm => { const m = tm % (24 * 60); return `${Math.floor(m / 60).toString().padStart(2, '0')}:${(m % 60).toString().padStart(2, '0')}`; };
+    const dayNames = { "-1": "Todos os Dias", "0": "Dom", "1": "Seg", "2": "Ter", "3": "Qua", "4": "Qui", "5": "Sex", "6": "Sáb" };
+
+    const updateEndTimePreview = () => {
+        const currentDuration = parseInt(inputDuration.value) || 0;
+        if (inputStartTime.value && currentDuration > 0) {
+            summaryEnd.innerText = minutesToTime(timeToMinutes(inputStartTime.value) + currentDuration);
+            timeSummary.classList.remove('hidden');
+        } else {
+            timeSummary.classList.add('hidden');
+        }
+    };
+
+    const checkFormValidity = () => {
+        const hasId = extractYouTubeId(inputUrl.value);
+        const hasStart = inputStartTime.value.trim() !== '';
+        const hasTitle = inputTitle.value.trim().length > 0;
+        const hasDuration = parseInt(inputDuration.value) > 0;
+
+        if (hasId && hasStart && hasTitle && hasDuration) {
+            btnSubmit.disabled = false;
+            btnSubmit.className = "w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-xl shadow-lg transition-all mt-8";
+            btnSubmit.style.cursor = "pointer";
+        } else {
+            btnSubmit.disabled = true;
+            btnSubmit.className = "w-full bg-slate-600 text-slate-300 font-bold py-4 rounded-xl shadow-lg transition-all mt-8 cursor-not-allowed";
+        }
+    };
+
+    form.addEventListener('input', () => {
+        updateEndTimePreview();
+        checkFormValidity();
+    });
+
+    form.addEventListener('change', () => {
+        updateEndTimePreview();
+        checkFormValidity();
+    });
+
+    const renderPreview = () => {
+        const preview = document.getElementById('preview-schedule');
+        if (!channel || !channel.programs || channel.programs.length === 0) {
+            preview.innerHTML = '<p class="text-slate-500 italic text-center mt-10">Grade vazia.</p>';
+            return;
+        }
+
+        let html = '<div class="space-y-3 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px before:h-full before:w-0.5 before:bg-slate-700">';
+        const sortedPrograms = [...channel.programs].sort((a, b) => {
+            const dayA = a.dayOfWeek ?? -1;
+            const dayB = b.dayOfWeek ?? -1;
+            if (dayA !== dayB) return dayA - dayB;
+            return a.startMin - b.startMin;
+        });
+
+        sortedPrograms.forEach(prog => {
+            const dName = dayNames[String(prog.dayOfWeek !== undefined ? prog.dayOfWeek : -1)];
+            html += `
+                    <div class="relative flex items-center">
+                        <div class="w-10 h-10 rounded-full border border-slate-600 bg-slate-900 flex justify-center items-center text-xs font-bold text-slate-400 z-10 shrink-0">${dName}</div>
+                        <div class="ml-4 w-full bg-slate-900/50 p-2 rounded-xl border border-slate-700 text-sm text-slate-300 truncate">
+                            <span class="text-amber-400 font-bold">${minutesToTime(prog.startMin)} - ${minutesToTime(prog.endMin)}</span> <br/>
+                            <span class="opacity-90">${prog.title}</span>
+                        </div>
+                    </div>`;
+        });
+        preview.innerHTML = html + '</div>';
+    };
+
+    const onPlayerStateChange = (event) => {
+        if ((event.data === YT.PlayerState.PLAYING || event.data === YT.PlayerState.CUED) && isFetchingData) {
+            const durationSeconds = ytPlayer.getDuration();
+            if (durationSeconds > 0) {
+                isFetchingData = false;
+                clearTimeout(apiTimeout);
+                inputDuration.value = Math.ceil(durationSeconds / 60);
+
+                const videoData = ytPlayer.getVideoData();
+                if (videoData && videoData.title && inputTitle.value === '') {
+                    inputTitle.value = videoData.title;
+                }
+
+                ytPlayer.stopVideo();
+                loadingYt.classList.add('hidden');
+                updateEndTimePreview();
+                checkFormValidity();
+            }
+        }
+    };
+
+    const fetchVideoData = (videoId) => {
+        isFetchingData = true;
+        loadingYt.classList.remove('hidden');
+
+        fetch(`https://noembed.com/embed?url=https://www.youtube.com/watch?v=${videoId}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.title && inputTitle.value === '') {
+                    inputTitle.value = data.title;
+                    checkFormValidity();
+                }
+            }).catch(err => console.warn('oEmbed falhou:', err));
+
+        if (ytPlayer && typeof ytPlayer.loadVideoById === 'function') {
+            ytPlayer.loadVideoById(videoId);
+        } else if (window.YT && window.YT.Player) {
+            ytPlayer = new YT.Player('hidden-yt-player', {
+                videoId: videoId,
+                playerVars: { 'autoplay': 1, 'controls': 0, 'mute': 1 },
+                events: {
+                    'onReady': e => { e.target.mute(); e.target.playVideo(); },
+                    'onStateChange': onPlayerStateChange
+                }
+            });
+        }
+
+        clearTimeout(apiTimeout);
+        apiTimeout = setTimeout(() => {
+            if (isFetchingData) {
+                isFetchingData = false;
+                loadingYt.classList.add('hidden');
+                console.warn('Timeout na IFrame API. Preencha a duração manualmente.');
+                checkFormValidity();
+            }
+        }, 5000);
+    };
+
+    let typingTimer = null;
+    inputUrl.addEventListener('input', (e) => {
+        clearTimeout(typingTimer);
+        const videoId = extractYouTubeId(e.target.value);
+        if (videoId) {
+            typingTimer = setTimeout(() => fetchVideoData(videoId), 800);
+        } else {
+            isFetchingData = false;
+            loadingYt.classList.add('hidden');
+        }
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const storedChannels = localStorage.getItem(STORAGE_KEY);
+        const editChannelId = localStorage.getItem(EDIT_KEY);
+
+        if (!storedChannels || !editChannelId) {
+            window.location.href = 'settings.html';
+            return;
+        }
+
+        channels = JSON.parse(storedChannels);
+        channelIndex = channels.findIndex(c => String(c.id) === String(editChannelId));
+
+        if (channelIndex === -1) {
+            window.location.href = 'settings.html';
+            return;
+        }
+
+        channel = channels[channelIndex];
+        if (!channel.programs) channel.programs = [];
+
+        document.getElementById('channel-name-title').innerText = `/ ${channel.name}`;
+
+        const savedEditIndex = localStorage.getItem(PROG_EDIT_KEY);
+        if (savedEditIndex !== null && savedEditIndex !== "") {
+            editIndex = parseInt(savedEditIndex);
+            document.getElementById('page-title').innerHTML = `Editar Programa <span id="channel-name-title" class="text-slate-500 text-xl font-normal">/ ${channel.name}</span>`;
+
+            const prog = channel.programs[editIndex];
+            if (prog) {
+                inputUrl.value = `https://youtu.be/${prog.videoId}`;
+                inputTitle.value = prog.title;
+                inputDay.value = prog.dayOfWeek !== undefined ? prog.dayOfWeek : -1;
+                inputStartTime.value = minutesToTime(prog.startMin);
+                inputDuration.value = prog.duration;
+                updateEndTimePreview();
+            }
+        }
+
+        renderPreview();
+        checkFormValidity();
+    });
+
+    form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        errorAlert.classList.add('hidden');
+
+        const videoId = extractYouTubeId(inputUrl.value);
+        if (!videoId) {
+            errorMessage.innerText = 'Link do YouTube inválido ou não reconhecido.';
+            errorAlert.classList.remove('hidden');
+            return;
+        }
+
+        const startMin = timeToMinutes(inputStartTime.value);
+        const durationVal = parseInt(inputDuration.value) || 0;
+
+        if (durationVal <= 0) {
+            errorMessage.innerText = 'A duração deve ser maior que zero.';
+            errorAlert.classList.remove('hidden');
+            return;
+        }
+
+        const endMin = startMin + durationVal;
+        const selectedDay = parseInt(inputDay.value);
+
+        const isConflict = channel.programs.some((prog, idx) => {
+            if (editIndex !== null && idx === editIndex) return false;
+            const progDay = prog.dayOfWeek !== undefined ? prog.dayOfWeek : -1;
+            const sameDay = (progDay === -1 || selectedDay === -1 || progDay === selectedDay);
+            const overlap = (startMin < prog.endMin) && (endMin > prog.startMin);
+            return sameDay && overlap;
+        });
+
+        if (isConflict) {
+            errorMessage.innerText = 'Já existe um vídeo para este dia e horário.';
+            errorAlert.classList.remove('hidden');
+
+            conflictToast.classList.remove('translate-x-[150%]');
+            setTimeout(() => conflictToast.classList.add('translate-x-[150%]'), 4000);
+
+            return;
+        }
+
+        const programData = {
+            videoId: videoId, title: inputTitle.value, dayOfWeek: selectedDay,
+            startMin: startMin, endMin: endMin, duration: durationVal
+        };
+
+        if (editIndex !== null) {
+            channel.programs[editIndex] = programData;
+        } else {
+            channel.programs.push(programData);
+        }
+        channels[channelIndex] = channel;
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(channels));
+
+        renderPreview();
+
+        successToast.classList.remove('translate-x-[150%]');
+        setTimeout(() => successToast.classList.add('translate-x-[150%]'), 3000);
+
+        form.reset();
+        editIndex = null;
+        localStorage.removeItem(PROG_EDIT_KEY);
+        timeSummary.classList.add('hidden');
+        document.getElementById('page-title').innerHTML = `Novo Programa <span class="text-slate-500 text-xl font-normal">/ ${channel.name}</span>`;
+        checkFormValidity();
+    });
+</script>
+</body>
+</html>
