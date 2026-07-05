@@ -1,0 +1,282 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Smart TV Kids - Ao Vivo</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { margin: 0; background-color: black; overflow: hidden; overscroll-behavior: none; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: white; }
+    .osd-layer { transition: opacity 0.5s ease-in-out; }
+    .osd-hidden { opacity: 0; pointer-events: none; }
+    .static-noise {
+      background-image: repeating-radial-gradient(circle at 17% 32%, white, black 0.00085px);
+      animation: noise 0.2s infinite;
+      opacity: 0.15;
+    }
+    @keyframes noise {
+      0% { background-position: 0 0; } 10% { background-position: -5% -10%; } 20% { background-position: 15% 5%; }
+      30% { background-position: 7% -25%; } 40% { background-position: 20% 25%; } 50% { background-position: -25% 10%; }
+      60% { background-position: 15% 5%; } 70% { background-position: 7% -25%; } 80% { background-position: 20% 25%; }
+      90% { background-position: -10% 10%; } 100% { background-position: 0 0; }
+    }
+  </style>
+</head>
+<body class="w-screen h-screen relative flex items-center justify-center">
+
+<div id="start-screen" class="absolute inset-0 z-[60] bg-neutral-900 flex flex-col items-center justify-center p-6 text-center">
+  <a href="index.html" class="absolute top-6 left-6 p-4 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-full transition-colors text-white text-decoration-none">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+  </a>
+  <div class="w-24 h-24 bg-red-600 rounded-full flex items-center justify-center mb-8 animate-pulse shadow-[0_0_30px_rgba(220,38,38,0.5)]">
+    <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect><polyline points="17 2 12 7 7 2"></polyline></svg>
+  </div>
+  <h1 class="text-4xl font-bold mb-4">TV Kids</h1>
+  <p class="text-gray-400 mb-8 max-w-md">Pressione para ligar a TV e iniciar a transmissão.</p>
+  <button id="btn-power" disabled class="bg-white text-black font-bold text-xl px-12 py-4 rounded-full flex items-center gap-3 transition-transform cursor-not-allowed opacity-50">
+    <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-black" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+    Conectando Satélite...
+  </button>
+</div>
+
+<div class="absolute inset-0 w-full h-full pointer-events-none bg-black">
+  <div id="youtube-player" class="w-full h-full"></div>
+</div>
+
+<div id="off-air-screen" class="absolute inset-0 z-20 bg-gradient-to-b from-blue-900 to-black flex flex-col items-center justify-center text-center hidden">
+  <svg class="mb-6 opacity-30 text-white" xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect><polyline points="17 2 12 7 7 2"></polyline></svg>
+  <h2 id="off-air-title" class="text-3xl font-bold mb-2 text-white">Fora do Ar</h2>
+  <p id="off-air-message" class="text-gray-400 text-lg px-6">A programação deste canal encerrou ou ainda não começou.</p>
+  <div class="mt-10 grid grid-cols-4 gap-1 opacity-20 w-48">
+    <div class="h-40 bg-red-500"></div><div class="h-40 bg-green-500"></div><div class="h-40 bg-blue-500"></div><div class="h-40 bg-yellow-500"></div>
+  </div>
+</div>
+
+<div id="static-screen" class="absolute inset-0 z-30 bg-gray-900 hidden">
+  <div class="absolute inset-0 static-noise"></div>
+  <div class="absolute inset-0 flex items-center justify-center">
+    <span class="text-white font-mono text-2xl animate-pulse drop-shadow-md">Sintonizando...</span>
+  </div>
+</div>
+
+<div class="absolute inset-0 z-40" oncontextmenu="return false;"></div>
+
+<div id="osd-layer" class="absolute inset-0 z-50 osd-layer osd-hidden">
+  <div class="absolute top-0 left-0 right-0 h-40 bg-gradient-to-b from-black/90 via-black/40 to-transparent pointer-events-none"></div>
+
+  <div class="absolute top-8 left-8 flex flex-col pointer-events-none drop-shadow-xl">
+    <span class="text-white/70 font-bold text-sm tracking-widest uppercase mb-1 drop-shadow-md">Agora na TV</span>
+    <span id="osd-channel-name" class="text-white font-black text-4xl drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">CH 1</span>
+    <span id="osd-program-name" class="text-amber-400 font-bold text-xl mt-2 drop-shadow-md"></span>
+  </div>
+
+  <a href="index.html" class="absolute top-8 right-24 p-4 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-2xl text-white transition-colors cursor-pointer pointer-events-auto shadow-lg border border-white/10">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+  </a>
+
+  <button id="btn-fullscreen" class="absolute top-8 right-8 p-4 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-2xl text-white transition-colors cursor-pointer pointer-events-auto shadow-lg border border-white/10">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path></svg>
+  </button>
+
+  <div id="channel-selector" class="absolute right-8 top-1/2 -translate-y-1/2 flex flex-col gap-4 pointer-events-auto"></div>
+</div>
+
+<script>
+  const STORAGE_KEY = 'tvKidsChannels';
+  let channels = [];
+  let currentChannelIndex = 0;
+  let playingProgram = null;
+
+  let player = null;
+  let playerReady = false;
+  let syncInterval = null;
+  let isTvOn = false;
+
+  const startScreen = document.getElementById('start-screen');
+  const offAirScreen = document.getElementById('off-air-screen');
+  const offAirTitle = document.getElementById('off-air-title');
+  const offAirMessage = document.getElementById('off-air-message');
+  const staticScreen = document.getElementById('static-screen');
+  const osdLayer = document.getElementById('osd-layer');
+  const osdChannelName = document.getElementById('osd-channel-name');
+  const osdProgramName = document.getElementById('osd-program-name');
+  const channelSelector = document.getElementById('channel-selector');
+  const btnPower = document.getElementById('btn-power');
+
+  window.onYouTubeIframeAPIReady = () => {
+    player = new YT.Player('youtube-player', {
+      host: 'https://www.youtube-nocookie.com', // Contorno para restrição de rastreamento do iOS Safari
+      playerVars: {
+        'autoplay': 1,
+        'controls': 0,
+        'disablekb': 1,
+        'fs': 0,
+        'modestbranding': 1,
+        'rel': 0,
+        'playsinline': 1,
+        'origin': window.location.origin, // Necessário para WebKit CORS
+        'enablejsapi': 1
+      },
+      events: {
+        'onReady': () => {
+          playerReady = true;
+          btnPower.innerHTML = `
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path><line x1="12" y1="2" x2="12" y2="12"></line></svg>
+                            Ligar a TV
+                        `;
+          btnPower.disabled = false;
+          btnPower.classList.remove('opacity-50', 'cursor-not-allowed');
+          btnPower.classList.add('hover:scale-105');
+        },
+        'onStateChange': (event) => {
+          if (event.data === YT.PlayerState.ENDED) syncWithClock();
+        },
+        'onError': (event) => {
+          console.error("YouTube API Error:", event.data);
+          if (event.data === 101 || event.data === 150) {
+            showOffAir("Sinal Bloqueado", "O autor deste vídeo não permite a reprodução fora do YouTube. Escolha outro vídeo na grade.");
+            osdProgramName.innerText = "Sinal Bloqueado";
+          } else {
+            showOffAir("Erro de Transmissão", "Não foi possível carregar o vídeo. Verifique sua conexão.");
+          }
+        }
+      }
+    });
+  };
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const savedData = localStorage.getItem(STORAGE_KEY);
+    if (!savedData) {
+      alert("Nenhuma configuração encontrada.");
+      window.location.href = 'index.html';
+      return;
+    }
+    channels = JSON.parse(savedData);
+    renderChannelButtons();
+
+    const tag = document.createElement('script');
+    tag.src = "https://www.youtube.com/iframe_api";
+    const firstScriptTag = document.getElementsByTagName('script')[0];
+    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+    btnPower.addEventListener('click', () => {
+      if (!playerReady) return;
+      isTvOn = true;
+      startScreen.classList.add('hidden');
+
+      syncWithClock();
+      syncInterval = setInterval(syncWithClock, 5000);
+      wakeUpUI();
+    });
+  });
+
+  const showOffAir = (title = "Fora do Ar", message = "A programação deste canal encerrou ou ainda não começou.") => {
+    offAirTitle.innerText = title;
+    offAirMessage.innerText = message;
+    offAirScreen.classList.remove('hidden');
+  };
+
+  const syncWithClock = () => {
+    if (!isTvOn || !player || !playerReady) return;
+
+    const now = new Date();
+    const currentDay = now.getDay();
+    const currentMin = now.getHours() * 60 + now.getMinutes();
+    const currentSec = now.getSeconds();
+
+    const channel = channels[currentChannelIndex];
+
+    const scheduledProgram = channel.programs.find(p => {
+      const isRightDay = (p.dayOfWeek === undefined || p.dayOfWeek === -1 || p.dayOfWeek === currentDay);
+      const isRightTime = (currentMin >= p.startMin && currentMin < p.endMin);
+      return isRightDay && isRightTime;
+    });
+
+    if (scheduledProgram) {
+      offAirScreen.classList.add('hidden');
+      osdProgramName.innerText = scheduledProgram.title;
+
+      if (!playingProgram || playingProgram.videoId !== scheduledProgram.videoId) {
+        playingProgram = scheduledProgram;
+        const offsetSeconds = ((currentMin - scheduledProgram.startMin) * 60) + currentSec;
+
+        staticScreen.classList.remove('hidden');
+
+        player.loadVideoById(scheduledProgram.videoId, offsetSeconds);
+        player.playVideo();
+
+        setTimeout(() => {
+          staticScreen.classList.add('hidden');
+        }, 800);
+      }
+    } else {
+      if (playingProgram !== null) {
+        playingProgram = null;
+        if (player.stopVideo) player.stopVideo();
+      }
+      showOffAir();
+      osdProgramName.innerText = "Sinal Interrompido";
+    }
+  };
+
+  const changeChannel = (index) => {
+    if (currentChannelIndex === index) return;
+    currentChannelIndex = index;
+    playingProgram = null;
+
+    osdChannelName.innerText = `CH ${channels[index].id} - ${channels[index].name}`;
+    renderChannelButtons();
+
+    staticScreen.classList.remove('hidden');
+    syncWithClock();
+    wakeUpUI();
+  };
+
+  const renderChannelButtons = () => {
+    channelSelector.innerHTML = '';
+    channels.forEach((ch, idx) => {
+      const btn = document.createElement('button');
+      if (idx === currentChannelIndex) {
+        btn.className = `w-16 h-16 rounded-2xl flex items-center justify-center font-bold text-2xl transition-all shadow-[0_0_20px_rgba(255,255,255,0.3)] border-2 ${ch.color} text-white border-white scale-110`;
+        osdChannelName.innerText = `CH ${ch.id} - ${ch.name}`;
+      } else {
+        btn.className = `w-16 h-16 rounded-2xl flex items-center justify-center font-bold text-2xl transition-all shadow-lg border-2 bg-white/10 backdrop-blur-md text-white/70 border-white/10 hover:bg-white/20 hover:text-white`;
+      }
+      btn.innerText = ch.id;
+      btn.onclick = () => changeChannel(idx);
+      channelSelector.appendChild(btn);
+    });
+  };
+
+  let uiTimeout = null;
+  const wakeUpUI = () => {
+    osdLayer.classList.remove('osd-hidden');
+    clearTimeout(uiTimeout);
+    uiTimeout = setTimeout(() => { if(isTvOn) osdLayer.classList.add('osd-hidden'); }, 4000);
+  };
+
+  document.addEventListener('mousemove', wakeUpUI);
+  document.addEventListener('touchstart', wakeUpUI);
+
+  document.getElementById('btn-fullscreen').addEventListener('click', () => {
+    const docEl = document.documentElement;
+    const requestFS = docEl.requestFullscreen || docEl.webkitRequestFullscreen || docEl.mozRequestFullScreen || docEl.msRequestFullscreen;
+    const exitFS = document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || document.msExitFullscreen;
+
+    if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+      if (requestFS) {
+        requestFS.call(docEl).catch(err => {
+          alert("O Safari do iPhone não suporta tela cheia forçada nesta visualização. Gire o aparelho fisicamente para expandir a tela.");
+        });
+      } else {
+        alert("Seu navegador não suporta a função de tela cheia. Gire o aparelho.");
+      }
+    } else {
+      if (exitFS) exitFS.call(document);
+    }
+    wakeUpUI();
+  });
+</script>
+</body>
+</html>

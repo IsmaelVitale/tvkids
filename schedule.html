@@ -1,0 +1,161 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Grade do Canal - Smart TV Kids</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style> body { background-color: #0f172a; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: white; } </style>
+</head>
+<body class="min-h-screen p-6 md:p-12 m-0 flex flex-col">
+<div class="max-w-5xl mx-auto w-full flex-1 flex flex-col">
+
+  <div class="flex items-center justify-between mb-10">
+    <div class="flex items-center gap-4">
+      <a href="settings.html" class="p-3 bg-slate-800 rounded-full hover:bg-slate-700 transition cursor-pointer text-white">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+      </a>
+      <h1 class="text-3xl font-bold" id="channel-title">Carregando... <span class="text-slate-500 text-xl font-normal">/ Grade</span></h1>
+    </div>
+
+    <button id="btn-add-top" class="hidden bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 shadow-lg transition-colors text-decoration-none">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+      Adicionar
+    </button>
+  </div>
+
+  <div id="content-area" class="flex-1 flex flex-col"></div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const STORAGE_KEY = 'tvKidsChannels';
+    const EDIT_KEY = 'tvKidsCurrentEditChannel';
+    const PROG_EDIT_KEY = 'tvKidsEditProgramIndex';
+
+    const currentChannelId = localStorage.getItem(EDIT_KEY);
+    if (!currentChannelId) { window.location.href = 'settings.html'; return; }
+
+    const channels = JSON.parse(localStorage.getItem(STORAGE_KEY));
+    const channelIndex = channels.findIndex(c => c.id == currentChannelId);
+    const channel = channels[channelIndex];
+
+    document.getElementById('channel-title').innerHTML = `${channel.name} <span class="text-slate-500 text-xl font-normal">/ Grade</span>`;
+
+    const contentArea = document.getElementById('content-area');
+    const btnAddTop = document.getElementById('btn-add-top');
+
+    const dayNames = { "-1": "Todos os Dias", "0": "Domingo", "1": "Segunda", "2": "Terça", "3": "Quarta", "4": "Quinta", "5": "Sexta", "6": "Sábado" };
+
+    const minutesToTime = (totalMinutes) => {
+      const m = totalMinutes % (24 * 60);
+      return `${Math.floor(m / 60).toString().padStart(2, '0')}:${(m % 60).toString().padStart(2, '0')}`;
+    };
+
+    btnAddTop.addEventListener('click', () => {
+      localStorage.removeItem(PROG_EDIT_KEY);
+      window.location.href = 'add-program.html';
+    });
+
+    const renderSchedule = () => {
+      contentArea.innerHTML = '';
+
+      if (!channel.programs || channel.programs.length === 0) {
+        btnAddTop.classList.add('hidden');
+        contentArea.innerHTML = `
+                        <div class="flex-1 flex flex-col items-center justify-center border-2 border-dashed border-slate-700 rounded-3xl bg-slate-800/50 p-10 text-center">
+                            <div class="text-slate-500 mb-4 opacity-50">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect><polyline points="17 2 12 7 7 2"></polyline></svg>
+                            </div>
+                            <h2 class="text-2xl font-bold text-slate-400 mb-2">A grade está vazia</h2>
+                            <button id="btn-add-empty" class="bg-blue-600 hover:bg-blue-500 text-white px-8 py-4 rounded-full font-bold text-lg flex items-center gap-2 shadow-lg transition-transform hover:scale-105 mt-4">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                                Adicionar programa
+                            </button>
+                        </div>
+                    `;
+        document.getElementById('btn-add-empty').addEventListener('click', () => {
+          localStorage.removeItem(PROG_EDIT_KEY);
+          window.location.href = 'add-program.html';
+        });
+      } else {
+        btnAddTop.classList.remove('hidden');
+        btnAddTop.classList.add('flex');
+
+        let tableHTML = `
+                        <div class="bg-slate-800 rounded-3xl border border-slate-700 overflow-hidden shadow-xl">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-slate-900 border-b border-slate-700">
+                                        <th class="p-4 text-slate-400 font-semibold w-40">Dia</th>
+                                        <th class="p-4 text-slate-400 font-semibold w-40">Horário</th>
+                                        <th class="p-4 text-slate-400 font-semibold">Programa</th>
+                                        <th class="p-4 text-slate-400 font-semibold text-right w-32">Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                    `;
+
+        // Ordenar por dia e horário sem perder o índice original para edição
+        const sortedPrograms = channel.programs.map((prog, index) => ({...prog, originalIndex: index}))
+                .sort((a, b) => {
+                  const dayA = a.dayOfWeek ?? -1;
+                  const dayB = b.dayOfWeek ?? -1;
+                  if (dayA !== dayB) return dayA - dayB;
+                  return a.startMin - b.startMin;
+                });
+
+        sortedPrograms.forEach(prog => {
+          const dName = dayNames[prog.dayOfWeek ?? -1];
+          tableHTML += `
+                            <tr class="border-b border-slate-700/50 hover:bg-slate-750 transition-colors">
+                                <td class="p-4 font-bold text-slate-300 whitespace-nowrap">${dName}</td>
+                                <td class="p-4 font-mono text-amber-400 font-bold whitespace-nowrap">
+                                    ${minutesToTime(prog.startMin)} - ${minutesToTime(prog.endMin)}
+                                </td>
+                                <td class="p-4">
+                                    <div class="font-bold text-lg text-white">${prog.title}</div>
+                                    <div class="text-sm text-slate-500 mt-1">ID: ${prog.videoId} • Duração: ${prog.duration} min</div>
+                                </td>
+                                <td class="p-4 text-right">
+                                    <div class="flex justify-end gap-2">
+                                        <button data-index="${prog.originalIndex}" class="btn-edit p-2 text-slate-400 hover:text-blue-500 hover:bg-blue-500/10 rounded-lg transition-colors" title="Editar">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                                        </button>
+                                        <button data-index="${prog.originalIndex}" class="btn-delete p-2 text-slate-400 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors" title="Excluir">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        `;
+        });
+
+        tableHTML += `</tbody></table></div>`;
+        contentArea.innerHTML = tableHTML;
+
+        document.querySelectorAll('.btn-edit').forEach(button => {
+          button.addEventListener('click', (e) => {
+            localStorage.setItem(PROG_EDIT_KEY, e.currentTarget.getAttribute('data-index'));
+            window.location.href = 'add-program.html';
+          });
+        });
+
+        document.querySelectorAll('.btn-delete').forEach(button => {
+          button.addEventListener('click', (e) => {
+            const progIndex = e.currentTarget.getAttribute('data-index');
+            if(confirm(`Remover programa da grade?`)) {
+              channel.programs.splice(progIndex, 1);
+              localStorage.setItem(STORAGE_KEY, JSON.stringify(channels));
+              renderSchedule();
+            }
+          });
+        });
+      }
+    };
+    renderSchedule();
+  });
+</script>
+</body>
+</html>
