@@ -29,13 +29,29 @@ QUARTA -
 09:50 a 11:20 Brinque conosco, papai! 💙 90 minutos de brincadeiras com o papai | Bluey Português Brasil Oficial: https://youtu.be/MVxb5eBtFAA?si=m7cQ32y_qLHyDA_M
 11:20 a 12:00 Os melhores episódios completos da 2 temporada de Bluey 💙🎉 | Bluey Português Brasil Canal Oficial: https://youtu.be/5dUe_46UrWs?si=RhRkyN1spmAOlPHd
 
+QUINTA - 
 
+09:16 A 10:12 A Bluey sente muita falta da mamãe! 😥💙 | Bluey Português Brasil Canal Oficial: https://youtu.be/7NC3H0fXues?si=CkMqX1fKQ90OvOq5
+10:12 a 10:46 Não é assim que a hora da história deveria ser tão tranquila 🦄💙 | Bluey Português Brasil Oficial: https://youtu.be/UBnQq0zbvxk?si=wZrhrQLayzsjfzg4
+10:46 a 12:00 Levando Shaun para passear! 💙 | 80 minutos de diversão ao ar livre | Bluey Português Brasil Oficial: https://youtu.be/GSe5DN2Ctoo?si=PVbJ_UOhCuzeV6bS
 
+SEXTA - 
 
+09:16 a 10:52 A Unicorse está sempre mudando a música 🦄🎵💙 | Bluey Português Brasil Canal Oficial: https://youtu.be/4gRzaaUMmDw?si=RR29pHM2UXbbZMGq
+10:52 a 11:45 Não mande no Bingo! 🧡💙 | Bluey Português Brasil Canal Oficial: https://youtu.be/whLVzaMMXM0?si=U5vOJ1d690kS0nYV
+11:45 a 12:00 Grandes Sorrisos com Bluey 😁 💙 | Diversão com Bluey e Bingo | Bluey Português Brasil Canal Oficial: https://youtu.be/LHKve3f7acE?si=1cT8FUkoEVKVgp0Z
 
+SABADO - 
 
+09:16 a 11:23 Vamos Brincar Juntos 💙 | 2 horas de diversão em família | Bluey Português Brasil Canal Oficial: https://youtu.be/CQ2bz3rNCVQ?si=bT7kBMKxH5ts-hGf
+11:23 a 12:00 Bluey e Bingo procuram o chocolate de Páscoa escondido 🐰🍫💙 | Bluey Português Brasil Canal Oficial: https://youtu.be/X0ERR2TvyZM?si=Dj1RsTp6xrHgCIby
 
+DOMINGO - 
 
+09:16 a 10:11 O Bingo tem um plano muito inteligente! 🧡💙 ﻿| Bluey Português Brasil Canal Oficial: https://youtu.be/Ns8Cqugrm74?si=MiN-Fg16GCszJRS0
+10:11 a 10:41 O Passeio de Helicóptero da Bluey 🚁💙 | Bluey Português Brasil Canal Oficial: https://youtu.be/AsoSJhQ-QNI?si=WvQ3S8ugCOI9R_r9
+10:41 11:14 a Os pais são nojentos! 🤮💙 | 30 minutos cheios de amor | Bluey Português Brasil Canal Oficial: https://youtu.be/T9W4yXhAiyk?si=SI17tkLfKPVmqiCs
+11:14 a 12:00 Brincando no parque!💙🤗 | Bluey Português Brasil Canal Oficial: https://youtu.be/L54vCWdBZhQ?si=bwewazEE26oz-tKc
 
 
 
